@@ -6,6 +6,10 @@ from werkzeug.exceptions import abort
 from flaskr.auth import login_required
 from flaskr.db import get_db
 
+### pyBlink
+import RPi.GPIO as GPIO
+import time
+
 bp = Blueprint('program', __name__)
 
 @bp.route('/')
@@ -85,6 +89,45 @@ def update(id):
             return redirect(url_for('program.index'))
 
     return render_template('program/update.html', post=post)
+
+@bp.route('/<int:id>/run', methods=(['GET']))
+@login_required
+def run(id):
+    post = get_post(id)
+    
+    print('hello')
+    print(post['title'])
+    print(post['body'])
+    
+    run = True
+    
+    ### pyBlink
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
+    LED = int(post['title'])
+    delay = float(post['body'])
+    ledState = False
+    GPIO.setup(LED, GPIO.OUT)
+
+    while run:
+        GPIO.output(LED, True)
+        time.sleep(delay)
+        GPIO.output(LED, False)
+        time.sleep(delay)
+        GPIO.output(LED, True)
+        time.sleep(delay)
+        GPIO.output(LED, False)
+        time.sleep(delay)
+        GPIO.output(LED, True)
+        time.sleep(delay)
+        GPIO.output(LED, False)
+        time.sleep(delay)
+        run = False
+        
+    
+    return redirect(url_for('program.index')) 
+
+
 
 @bp.route('/<int:id>/delete', methods=(['POST']))
 @login_required
